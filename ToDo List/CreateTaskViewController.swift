@@ -13,24 +13,22 @@ class CreateTaskViewController: UIViewController {
     @IBOutlet weak var taskName: UITextField!
     @IBOutlet weak var importantSwitch: UISwitch!
     
-    //refrence for the task list view controller
-    var taskListVC = TaskListViewController()
-    
 
     override func viewDidLoad() {
         super.viewDidLoad()
     }
     
     @IBAction func AddTask(_ sender: Any) {
-        let task = Task()
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let task = Task(context: context)
         task.name = taskName.text!
         task.important = importantSwitch.isOn
+        (UIApplication.shared.delegate as! AppDelegate).saveContext()
+        
 //        var check = "abcdefghijklmnopqrstuvwxyz"
         
-        //add new task to the array in the task list view controller
         if task.name != ""{
-            taskListVC.tasks.append(task)
-            taskListVC.taskList.reloadData()
+            // Pop back to TaskList
             navigationController!.popViewController(animated: true)
         }
     }

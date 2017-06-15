@@ -13,14 +13,18 @@ class TaskListViewController: UIViewController, UITableViewDataSource, UITableVi
     @IBOutlet weak var taskList: UITableView!
     
     var tasks: [Task] = []
-    var selectedIndex = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        tasks = makeTasks()
         
         self.taskList.dataSource = self
         self.taskList.delegate = self
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        //This function gets called everytime this view appears on the screen
+        getTasks()
+        taskList.reloadData()
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -32,9 +36,9 @@ class TaskListViewController: UIViewController, UITableViewDataSource, UITableVi
         let cell = UITableViewCell()
         let task = tasks[indexPath.row]
         if task.important {
-            cell.textLabel?.text = "❗️\(task.name)"
+            cell.textLabel?.text = "❗️\(task.name!)"
         }else{
-            cell.textLabel?.text = task.name
+            cell.textLabel?.text = task.name!
         }
         
         return cell
@@ -42,36 +46,23 @@ class TaskListViewController: UIViewController, UITableViewDataSource, UITableVi
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let task = tasks[indexPath.row]
-        selectedIndex = indexPath.row
         performSegue(withIdentifier: "completeSegue", sender: task)
     }
     
-    func makeTasks() -> [Task]{
-        let task1 = Task()
-        task1.name = "Walk the dog"
-        task1.important = true
-        
-        let task2 = Task()
-        task2.name = "Wash the dishes"
-        task2.important = true
-        
-        let task3 = Task()
-        task3.name = "Call the cable company"
-        task3.important = false
-        
-        return [task1,task2,task3]
-    }
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "addSegue" {
-            let createTaskVC = segue.destination as! CreateTaskViewController
-            createTaskVC.taskListVC = self
-        }
-        
         if segue.identifier == "completeSegue" {
             let completeTaskVC = segue.destination as! CompleteTaskViewController
-            completeTaskVC.taskListVC = self
-            completeTaskVC.task = sender as! Task
+            completeTaskVC.task = (sender as! Task)
+        }
+    }
+    
+    func getTasks() {
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        do{
+            try tasks = context.fetch(Task.fetchRequest()) as! [Task]
+            print(tasks)
+        } catch {
+            print("No context to ferch")
         }
     }
     
